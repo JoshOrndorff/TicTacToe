@@ -27,7 +27,7 @@ pub enum Win {
 
 // This module's storage items.
 decl_storage! {
-	trait Store for Module<T: Trait> as TemplateModule {
+	trait Store for Module<T: Trait> as TicTacToe {
         // The next game index
         NextId get(next_id): GameId;
 
@@ -180,7 +180,7 @@ mod tests {
 
 	use runtime_io::with_externalities;
 	use primitives::{H256, Blake2Hasher};
-	use support::{impl_outer_origin, assert_ok, parameter_types};
+	use support::{impl_outer_origin, assert_ok, parameter_types, assert_noop, impl_outer_event};
 	use sr_primitives::{traits::{BlakeTwo256, IdentityLookup}, testing::Header};
 	use sr_primitives::weights::Weight;
 	use sr_primitives::Perbill;
@@ -188,6 +188,13 @@ mod tests {
 	impl_outer_origin! {
 		pub enum Origin for Test {}
 	}
+
+    use crate::tictactoe as module;
+    impl_outer_event! {
+      pub enum TestEvent for Test {
+          module<T>,
+      }
+    }
 
 	// For testing the module, we construct most of a mock runtime. This means
 	// first constructing a configuration type (`Test`) which `impl`s each of the
@@ -211,7 +218,7 @@ mod tests {
 		type Lookup = IdentityLookup<Self::AccountId>;
 		type Header = Header;
 		type WeightMultiplierUpdate = ();
-		type Event = ();
+		type Event = TestEvent;
 		type BlockHashCount = BlockHashCount;
 		type MaximumBlockWeight = MaximumBlockWeight;
 		type MaximumBlockLength = MaximumBlockLength;
@@ -219,9 +226,10 @@ mod tests {
 		type Version = ();
 	}
 	impl Trait for Test {
-		type Event = ();
+		type Event = TestEvent;
 	}
-	type TemplateModule = Module<Test>;
+	type TicTacToe = Module<Test>;
+    type SystemModule = system::Module<Test>;
 
 	// This function basically just builds a genesis storage key/value store according to
 	// our desired mockup.
@@ -230,13 +238,91 @@ mod tests {
 	}
 
 	#[test]
-	fn it_works_for_default_value() {
+	fn challenger_can_go_first() {
 		with_externalities(&mut new_test_ext(), || {
-			// Just a dummy test for the dummy funtion `do_something`
-			// calling the `do_something` function with a value 42
-			assert_ok!(TemplateModule::do_something(Origin::signed(1), 42));
-			// asserting that the stored value is equal to what we stored
-			assert_eq!(TemplateModule::something(), Some(42));
+			// Create a new game between players 1 and 2
+			assert_ok!(TicTacToe::create_game(Origin::signed(1), 2));
+
+			// Assert player one can make a move (game 0, top left)
+			assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
 		});
 	}
+
+    #[test]
+    fn challenger_cannot_go_twice() {
+		with_externalities(&mut new_test_ext(), || {
+			// Create a new game between players 1 and 2
+			assert_ok!(TicTacToe::create_game(Origin::signed(1), 2));
+
+			// Assert player one can make a move (game 0, top left)
+			assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
+
+			// Assert player one cannot make a second move in a row (game 0, top center)
+			assert_noop!(TicTacToe::take_turn(Origin::signed(1), 0, 1), "Not your turn (or you're not in this game)");
+		});
+	}
+
+    #[test]
+    fn opponent_cannot_steal_square() {
+        with_externalities(&mut new_test_ext(), || {
+            // Create a new game between players 1 and 2
+            assert_ok!(TicTacToe::create_game(Origin::signed(1), 2));
+
+            // Assert player one can make a move (game 0, top left)
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
+
+            // Assert player two cannot make the same move (game 0, top left)
+            assert_noop!(TicTacToe::take_turn(Origin::signed(2), 0, 0), "Cell already taken");
+        });
+    }
+
+    #[test]
+    fn vertical_wins_work() {
+        with_externalities(&mut new_test_ext(), || {
+            // Create a new game between players 1 and 2
+            assert_ok!(TicTacToe::create_game(Origin::signed(1), 2));
+
+            // 1 | 2 |
+            // ---------
+            // 1 | 2 |
+            // ---------
+            // 1 |   |
+
+            // Players make moves according to board diagram
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 1));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 3));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 4));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 6));
+
+            // Assert player 1 can claim a win (game 0, column 0)
+            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Win::Column(0)));
+            // The last event should be a win event. Is unwrap okay here?
+            assert_eq!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
+        });
+    }
+
+    #[test]
+    fn no_bogus_vertical_wins() {
+        with_externalities(&mut new_test_ext(), || {
+            // Create a new game between players 1 and 2
+            assert_ok!(TicTacToe::create_game(Origin::signed(1), 2));
+
+            // 1 | 2 |
+            // ---------
+            // 1 | 2 |
+            // ---------
+            //   |   |
+
+            // Players make moves according to board diagram
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 1));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 3));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 4));
+
+            // Assert player 1 cannot claim a win she hasn't earned (game 0, column 0)
+            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Win::Column(0)));
+            assert_ne!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
+        });
+    }
 }
