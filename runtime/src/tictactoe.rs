@@ -56,6 +56,9 @@ decl_module! {
 			// You can only create games that you will play in
 			let challenger = ensure_signed(origin)?;
 
+            // Confirm challenger and opponent are different people
+            //ensure!(challenger != opponent, "No playing with yourself");
+
             // Get the next game id, and update counter in storage
             let game = Self::next_id();
             NextId::put(game.wrapping_add(1));
