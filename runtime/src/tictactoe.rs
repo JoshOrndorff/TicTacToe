@@ -35,11 +35,16 @@ decl_storage! {
 		Board get(board): double_map GameId, twox_128(CellIndex) => Option<T::AccountId>;
 
         // Who is playing in each game
-        // This is the canonical way to determins whether a game exists.
+        // This is the canonical way to determine whether a game exists.
         Players get(players): map GameId => Vec<T::AccountId>;
 
         // Which turn it is in the given game
         Turn get(turn): map GameId => u64;
+
+        // Temporary storage item to keep track of who won each game
+        // Ideally the ultimate "result" from a win will be the event
+        // or possibly a payout in terms of staked/wagered tokens
+        Winner get(winner): map GameId => Option<T::AccountId>
 	}
 }
 
@@ -118,9 +123,10 @@ decl_module! {
                 Win::Downhill => Self::check_downhill(game, &caller),
             };
 
-            // If they actually won, emit the evant and clean up.
+            // If they actually won, emit the event and clean up.
             // Otherwise, just consume their fee.
             if actually_won {
+                <Winner<T>>::insert(game, caller.clone());
                 Self::deposit_event(RawEvent::Win(game, caller));
 
                 <Board<T>>::remove_prefix(&game);
@@ -302,6 +308,10 @@ mod tests {
             assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Win::Column(0)));
             // The last event should be a win event. Is unwrap okay here?
             assert_eq!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
+
+            // Assert cleanup after win works
+            let expected : Vec<u64> = vec![];
+            assert_eq!(TicTacToe::players(0), expected);
         });
     }
 
