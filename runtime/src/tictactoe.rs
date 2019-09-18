@@ -143,59 +143,35 @@ decl_module! {
 
 impl<T: Trait> Module<T> {
     fn check_vertical(game: GameId, winner: &T::AccountId, col: u8) -> bool {
-        for row in 0..3 {
-            let cell = row * 3 + col;
-            match <Board<T>>::get(&game, &cell) {
-                None => { return false; },
-                Some(player) => {
-                    if &player != winner {
-                        return false;
-                    }
-                },
-            }
-        }
-        true
+        let size = 3;
+        let cells = (0..size).map(|row| row * size + col);
+        Self::player_occupies_all_cells(game, winner, cells)
     }
 
     fn check_horizontal(game: GameId, winner: &T::AccountId, row: u8) -> bool {
-        for col in 0..3 {
-            let cell = row * 3 + col;
-            match <Board<T>>::get(&game, &cell) {
-                None => { return false; },
-                Some(player) => {
-                    if &player != winner {
-                        return false;
-                    }
-                },
-            }
-        }
-        true
+        let size = 3;
+        let cells = (0..size).map(|col| row * size + col);
+        Self::player_occupies_all_cells(game, winner, cells)
     }
 
     fn check_uphill(game: GameId, winner: &T::AccountId) -> bool {
         let size = 3;
-        for i in 0..size {
-            let cell = (size - 1) * (i + 1);
-            match <Board<T>>::get(&game, &cell) {
-                None => { return false; },
-                Some(player) => {
-                    if &player != winner {
-                        return false;
-                    }
-                },
-            }
-        }
-        true
+        let cells = (0..size).map(|i| (size - 1) * (i + 1));
+        Self::player_occupies_all_cells(game, winner, cells)
     }
 
     fn check_downhill(game: GameId, winner: &T::AccountId) -> bool {
         let size = 3;
-        for i in 0..size {
-            let cell = i * (size + 1);
+        let cells = (0..size).map(|i| i * (size + 1));
+        Self::player_occupies_all_cells(game, winner, cells)
+    }
+
+    fn player_occupies_all_cells(game: GameId, player: &T::AccountId, cells: impl Iterator<Item=CellIndex>) -> bool {
+        for cell in cells {
             match <Board<T>>::get(&game, &cell) {
                 None => { return false; },
-                Some(player) => {
-                    if &player != winner {
+                Some(p) => {
+                    if &p != player {
                         return false;
                     }
                 },
