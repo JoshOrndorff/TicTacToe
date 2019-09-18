@@ -151,7 +151,7 @@ impl<T: Trait> Module<T> {
                     if &player != winner {
                         return false;
                     }
-                }
+                },
             }
         }
         true
@@ -166,20 +166,42 @@ impl<T: Trait> Module<T> {
                     if &player != winner {
                         return false;
                     }
-                }
+                },
             }
         }
         true
     }
 
     fn check_uphill(game: GameId, winner: &T::AccountId) -> bool {
-        //TODO
-        false
+        let size = 3;
+        for i in 0..size {
+            let cell = (size - 1) * (i + 1);
+            match <Board<T>>::get(&game, &cell) {
+                None => { return false; },
+                Some(player) => {
+                    if &player != winner {
+                        return false;
+                    }
+                },
+            }
+        }
+        true
     }
 
     fn check_downhill(game: GameId, winner: &T::AccountId) -> bool {
-        //TODO
-        false
+        let size = 3;
+        for i in 0..size {
+            let cell = i * (size + 1);
+            match <Board<T>>::get(&game, &cell) {
+                None => { return false; },
+                Some(player) => {
+                    if &player != winner {
+                        return false;
+                    }
+                },
+            }
+        }
+        true
     }
 }
 
@@ -319,9 +341,13 @@ mod tests {
             // The last event should be a win event (game 0, player 1)
             assert_eq!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
 
-            // Assert cleanup after win works
+            // Assert players are cleaned up
             let expected : Vec<u64> = vec![];
             assert_eq!(TicTacToe::players(0), expected);
+
+            // TODO Assert board is cleaned up
+            // What do I expect here?
+            //assert_eq!(TicTacToe::board(0, 0), 0);
         });
     }
 
@@ -402,4 +428,113 @@ mod tests {
             assert_ne!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
         });
     }
+
+    #[test]
+    fn uphill_wins_work() {
+        with_externalities(&mut new_test_ext(), || {
+            // Create a new game between players 1 and 2
+            assert_ok!(TicTacToe::create_game(Origin::signed(1), 2));
+
+            // 2 |   | 1
+            // ---------
+            // 2 | 1 |
+            // ---------
+            // 1 |   |
+
+            // Players make moves according to board diagram
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 2));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 0));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 4));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 3));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 6));
+
+            // Assert player 1 can claim a win (game 0, uphill)
+            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Line::Uphill));
+            // The last event should be a win event (game 0, player 1)
+            assert_eq!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
+
+            // Assert cleanup after win works
+            let expected : Vec<u64> = vec![];
+            assert_eq!(TicTacToe::players(0), expected);
+        });
+    }
+
+    #[test]
+    fn no_bogus_uphill_wins() {
+        with_externalities(&mut new_test_ext(), || {
+            // Create a new game between players 1 and 2
+            assert_ok!(TicTacToe::create_game(Origin::signed(1), 2));
+
+            // 2 |   | 1
+            // ---------
+            // 2 | 1 |
+            // ---------
+            //   |   |
+
+            // Players make moves according to board diagram
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 2));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 0));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 4));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 3));
+
+            // Assert player 1 cannot claim a win she hasn't earned (game 0, row 0)
+            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Line::Row(0)));
+            assert_ne!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
+        });
+    }
+
+    #[test]
+    fn downhill_wins_work() {
+        with_externalities(&mut new_test_ext(), || {
+            // Create a new game between players 1 and 2
+            assert_ok!(TicTacToe::create_game(Origin::signed(1), 2));
+
+            // 1 |   |
+            // ---------
+            // 2 | 1 |
+            // ---------
+            // 2 |   | 1
+
+            // Players make moves according to board diagram
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 3));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 4));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 6));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 8));
+
+            // Assert player 1 can claim a win (game 0, uphill)
+            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Line::Downhill));
+            // The last event should be a win event (game 0, player 1)
+            assert_eq!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
+
+            // Assert cleanup after win works
+            let expected : Vec<u64> = vec![];
+            assert_eq!(TicTacToe::players(0), expected);
+        });
+    }
+
+    #[test]
+    fn no_bogus_downhill_wins() {
+        with_externalities(&mut new_test_ext(), || {
+            // Create a new game between players 1 and 2
+            assert_ok!(TicTacToe::create_game(Origin::signed(1), 2));
+
+            // 1 |   |
+            // ---------
+            // 2 | 1 |
+            // ---------
+            // 2 |   |
+
+            // Players make moves according to board diagram
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 3));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 4));
+            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 6));
+
+            // Assert player 1 cannot claim a win she hasn't earned (game 0, row 0)
+            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Line::Row(0)));
+            assert_ne!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
+        });
+    }
+
 }
