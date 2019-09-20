@@ -83,7 +83,8 @@ decl_module! {
             ensure!(<Players<T>>::exists(game), "No such Game");
 
             // Verify the palyer
-            let player_index = (Turn::get(game) % 2) as usize;
+            let current_turn = Turn::get(game);
+            let player_index = (current_turn % 2) as usize;
             let player = <Players<T>>::get(game)[player_index].clone();
             ensure!(caller == player, "Not your turn (or you're not in this game)");
 
@@ -94,8 +95,9 @@ decl_module! {
             <Board<T>>::insert(&game, &cell, &caller);
 
             // Update the turn counter
-            let new_turn = Turn::get(game).wrapping_add(1);
-            Turn::insert(game,new_turn);
+            // Wrapping add is safe atm because board will fill before turn
+            // overflows. Revisit this when (if) board size is customizable.
+            Turn::insert(game, current_turn.wrapping_add(1));
 
             // Emit the event
             Self::deposit_event(RawEvent::TurnTaken(game, caller, cell));
