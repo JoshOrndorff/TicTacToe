@@ -71,13 +71,6 @@ decl_module! {
             // Store the players
             <Players<T>>::insert(game, vec![challenger.clone(), opponent.clone()]);
 
-            // I guess this isn't necessary because None is default. Compiler doesn't like
-            // when I try to manually insert None
-            // Maybe I need to kill or remove or something instead.
-            // for cell in 0..9 {
-			// 	<Board<T>>::insert(&game, &cell, &None);
-            // }
-
 			// Emit the event
 			Self::deposit_event(RawEvent::NewGame(game, challenger, opponent));
 			Ok(())
