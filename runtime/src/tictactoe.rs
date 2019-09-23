@@ -76,67 +76,76 @@ decl_module! {
 			Ok(())
 		}
 
-        pub fn take_turn(origin, game: GameId, cell: CellIndex) -> Result {
+        pub fn take_normal_turn(origin, game: GameId, cell: CellIndex) -> Result {
             let caller = ensure_signed(origin)?;
 
-            // Verify the game id
-            ensure!(<Players<T>>::exists(game), "No such Game");
-
-            // Verify the palyer
-            let current_turn = Turn::get(game);
-            let player_index = (current_turn % 2) as usize;
-            let player = <Players<T>>::get(game)[player_index].clone();
-            ensure!(caller == player, "Not your turn (or you're not in this game)");
-
-            // Verify the cell
-            ensure!(!<Board<T>>::exists(&game, &cell), "Cell already taken");
-
-            // Write to the cell
-            <Board<T>>::insert(&game, &cell, &caller);
-
-            // Update the turn counter
-            // Wrapping add is safe atm because board will fill before turn
-            // overflows. Revisit this when (if) board size is customizable.
-            Turn::insert(game, current_turn.wrapping_add(1));
-
-            // Emit the event
-            Self::deposit_event(RawEvent::TurnTaken(game, caller, cell));
-
-            Ok(())
+            Self::take_turn(&caller, game, cell)
         }
 
-        pub fn claim_win(origin, game: GameId, location: Line) -> Result {
+        pub fn take_winning_turn(origin, game: GameId, cell: CellIndex, location: Line) -> Result {
             let caller = ensure_signed(origin)?;
 
-            // Verify the game id
-            ensure!(<Players<T>>::exists(game), "No such Game");
+            let turn_result = Self::take_turn(&caller, game, cell);
+            match turn_result {
+                // Is there some map_err or something for this?
+                Err(e) => Err(e),
+                Ok(()) => {
+                    let actually_won = match location {
+                        Line::Column(n) => Self::check_vertical(game, &caller, n),
+                        Line::Row(n) => Self::check_horizontal(game, &caller, n),
+                        Line::Uphill => Self::check_uphill(game, &caller),
+                        Line::Downhill => Self::check_downhill(game, &caller),
+                    };
 
-            let actually_won = match location {
-                Line::Column(n) => Self::check_vertical(game, &caller, n),
-                Line::Row(n) => Self::check_horizontal(game, &caller, n),
-                Line::Uphill => Self::check_uphill(game, &caller),
-                Line::Downhill => Self::check_downhill(game, &caller),
-            };
+                    // If they actually won, emit the event and clean up.
+                    // Otherwise, just consume their fee.
+                    if actually_won {
+                        <Winner<T>>::insert(game, caller.clone());
+                        Self::deposit_event(RawEvent::Win(game, caller));
 
-            // If they actually won, emit the event and clean up.
-            // Otherwise, just consume their fee.
-            if actually_won {
-                <Winner<T>>::insert(game, caller.clone());
-                Self::deposit_event(RawEvent::Win(game, caller));
+                        <Board<T>>::remove_prefix(&game);
+                        <Players<T>>::remove(game);
+                        Turn::remove(game);
+                    }
 
-                <Board<T>>::remove_prefix(&game);
-                <Players<T>>::remove(game);
-                Turn::remove(game);
+                    Ok(())
+                }
             }
-
-            Ok(())
         }
 
         //TODO Way to clean up draws and abandoned games
+        // fn abort game
 	}
 }
 
 impl<T: Trait> Module<T> {
+    fn take_turn(caller: &T::AccountId, game: GameId, cell: CellIndex) -> Result {
+        // Verify the game id
+        ensure!(<Players<T>>::exists(game), "No such Game");
+
+        // Verify the palyer
+        let current_turn = Turn::get(game);
+        let player_index = (current_turn % 2) as usize;
+        let player = <Players<T>>::get(game)[player_index].clone();
+        ensure!(caller == &player, "Not your turn (or you're not in this game)");
+
+        // Verify the cell
+        ensure!(!<Board<T>>::exists(&game, &cell), "Cell already taken");
+
+        // Write to the cell
+        <Board<T>>::insert(&game, &cell, caller);
+
+        // Update the turn counter
+        // Wrapping add is safe atm because board will fill before turn
+        // overflows. Revisit this when (if) board size is customizable.
+        Turn::insert(game, current_turn.wrapping_add(1));
+
+        // Emit the event
+        Self::deposit_event(RawEvent::TurnTaken(game, caller.clone(), cell));
+
+        Ok(())
+    }
+
     fn check_vertical(game: GameId, winner: &T::AccountId, col: u8) -> bool {
         let size = 3;
         let cells = (0..size).map(|row| row * size + col);
@@ -256,7 +265,7 @@ mod tests {
 			assert_ok!(TicTacToe::create_game(Origin::signed(1), 2));
 
 			// Assert player one can make a move (game 0, top left)
-			assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
+			assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 0));
 		});
 	}
 
@@ -267,10 +276,10 @@ mod tests {
 			assert_ok!(TicTacToe::create_game(Origin::signed(1), 2));
 
 			// Assert player one can make a move (game 0, top left)
-			assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
+			assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 0));
 
 			// Assert player one cannot make a second move in a row (game 0, top center)
-			assert_noop!(TicTacToe::take_turn(Origin::signed(1), 0, 1), "Not your turn (or you're not in this game)");
+			assert_noop!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 1), "Not your turn (or you're not in this game)");
 		});
 	}
 
@@ -281,10 +290,10 @@ mod tests {
             assert_ok!(TicTacToe::create_game(Origin::signed(1), 2));
 
             // Assert player one can make a move (game 0, top left)
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 0));
 
             // Assert player two cannot make the same move (game 0, top left)
-            assert_noop!(TicTacToe::take_turn(Origin::signed(2), 0, 0), "Cell already taken");
+            assert_noop!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 0), "Cell already taken");
         });
     }
 
@@ -301,14 +310,13 @@ mod tests {
             // 1 |   |
 
             // Players make moves according to board diagram
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 1));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 3));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 4));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 6));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 0));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 1));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 3));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 4));
 
             // Assert player 1 can claim a win (game 0, column 0)
-            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Line::Column(0)));
+            assert_ok!(TicTacToe::take_winning_turn(Origin::signed(1), 0, 6, Line::Column(0)));
             // The last event should be a win event (game 0, player 1)
             assert_eq!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
 
@@ -335,13 +343,12 @@ mod tests {
             //   |   |
 
             // Players make moves according to board diagram
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 1));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 3));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 4));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 0));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 1));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 3));
 
             // Assert player 1 cannot claim a win she hasn't earned (game 0, column 0)
-            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Line::Column(0)));
+            assert_ok!(TicTacToe::take_winning_turn(Origin::signed(2), 0, 4, Line::Column(0)));
             assert_ne!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
         });
     }
@@ -359,14 +366,13 @@ mod tests {
             //   |   |
 
             // Players make moves according to board diagram
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 3));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 1));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 4));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 2));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 0));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 3));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 1));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 4));
 
             // Assert player 1 can claim a win (game 0, row 0)
-            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Line::Row(0)));
+            assert_ok!(TicTacToe::take_winning_turn(Origin::signed(1), 0, 2, Line::Row(0)));
             // The last event should be a win event (gam 0, player 1)
             assert_eq!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
 
@@ -389,13 +395,12 @@ mod tests {
             //   |   |
 
             // Players make moves according to board diagram
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 3));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 1));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 4));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 0));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 3));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 1));
 
             // Assert player 1 cannot claim a win she hasn't earned (game 0, row 0)
-            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Line::Row(0)));
+            assert_ok!(TicTacToe::take_winning_turn(Origin::signed(2), 0, 4, Line::Row(0)));
             assert_ne!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
         });
     }
@@ -413,14 +418,13 @@ mod tests {
             // 1 |   |
 
             // Players make moves according to board diagram
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 2));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 0));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 4));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 3));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 6));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 2));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 0));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 4));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 3));
 
             // Assert player 1 can claim a win (game 0, uphill)
-            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Line::Uphill));
+            assert_ok!(TicTacToe::take_winning_turn(Origin::signed(1), 0, 6, Line::Uphill));
             // The last event should be a win event (game 0, player 1)
             assert_eq!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
 
@@ -443,13 +447,12 @@ mod tests {
             //   |   |
 
             // Players make moves according to board diagram
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 2));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 0));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 4));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 3));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 2));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 0));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 4));
 
             // Assert player 1 cannot claim a win she hasn't earned (game 0, row 0)
-            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Line::Row(0)));
+            assert_ok!(TicTacToe::take_winning_turn(Origin::signed(2), 0, 3, Line::Row(0)));
             assert_ne!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
         });
     }
@@ -467,14 +470,13 @@ mod tests {
             // 2 |   | 1
 
             // Players make moves according to board diagram
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 3));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 4));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 6));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 8));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 0));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 3));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 4));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 6));
 
             // Assert player 1 can claim a win (game 0, uphill)
-            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Line::Downhill));
+            assert_ok!(TicTacToe::take_winning_turn(Origin::signed(1), 0, 8, Line::Downhill));
             // The last event should be a win event (game 0, player 1)
             assert_eq!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
 
@@ -497,13 +499,12 @@ mod tests {
             // 2 |   |
 
             // Players make moves according to board diagram
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 0));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 3));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(1), 0, 4));
-            assert_ok!(TicTacToe::take_turn(Origin::signed(2), 0, 6));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 0));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 3));
+            assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 4));
 
             // Assert player 1 cannot claim a win she hasn't earned (game 0, row 0)
-            assert_ok!(TicTacToe::claim_win(Origin::signed(1), 0, Line::Row(0)));
+            assert_ok!(TicTacToe::take_winning_turn(Origin::signed(2), 0, 6, Line::Row(0)));
             assert_ne!(SystemModule::events().last().unwrap().event, RawEvent::Win(0, 1).into());
         });
     }
