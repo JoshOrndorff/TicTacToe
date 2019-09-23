@@ -100,7 +100,9 @@ decl_module! {
                     // If they actually won, emit the event and clean up.
                     // Otherwise, just consume their fee.
                     if actually_won {
+                        // Winner field for debugging only. Remove when working
                         <Winner<T>>::insert(game, caller.clone());
+
                         Self::deposit_event(RawEvent::Win(game, caller));
 
                         <Board<T>>::remove_prefix(&game);
@@ -324,9 +326,16 @@ mod tests {
             let expected : Vec<u64> = vec![];
             assert_eq!(TicTacToe::players(0), expected);
 
-            // TODO Assert board is cleaned up
-            // What do I expect here?
-            //assert_eq!(TicTacToe::board(0, 0), 0);
+            // Assert board is cleaned up after the win
+            assert_eq!(TicTacToe::board(&0, &0), None);
+            assert_eq!(TicTacToe::board(&0, &1), None);
+            assert_eq!(TicTacToe::board(&0, &2), None);
+            assert_eq!(TicTacToe::board(&0, &3), None);
+            assert_eq!(TicTacToe::board(&0, &4), None);
+            assert_eq!(TicTacToe::board(&0, &5), None);
+            assert_eq!(TicTacToe::board(&0, &6), None);
+            assert_eq!(TicTacToe::board(&0, &7), None);
+            assert_eq!(TicTacToe::board(&0, &8), None);
         });
     }
 
