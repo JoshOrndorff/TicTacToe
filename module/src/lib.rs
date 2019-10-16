@@ -1,4 +1,6 @@
-/// A runtime module to play censorship-resistant tic-tac-toe games
+//! A runtime module to play censorship-resistant tic-tac-toe games
+
+#![cfg_attr(not(feature = "std"), no_std)]
 
 use support::{decl_module, decl_storage, decl_event, StorageValue, StorageMap, StorageDoubleMap, dispatch::Result};
 use system::ensure_signed;

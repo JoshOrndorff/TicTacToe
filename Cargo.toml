@@ -86,13 +86,16 @@ rev = '3dedd246c62255ba6f9b777ecba318dfc2078d85'
 panic = 'unwind'
 
 [workspace]
-members = ['runtime']
+members = [
+  'runtime',
+  'module',
+]
 
 [package]
 authors = ['Joshy Orndorff']
 build = 'build.rs'
 edition = '2018'
-name = 'tictactoe'
+name = 'tictactoe-node'
 version = '2.0.0'
 
 [[bin]]

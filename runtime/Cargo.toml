@@ -1,8 +1,12 @@
 [package]
-authors = ['Anonymous']
+authors = ['Joshy Orndorff']
 edition = '2018'
 name = 'tictactoe-runtime'
 version = '2.0.0'
+
+[dependencies.tictactoe]
+default-features = false
+path = '../module'
 
 [dependencies.babe]
 default-features = false
