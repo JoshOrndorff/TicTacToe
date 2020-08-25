@@ -53,7 +53,9 @@ sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "roc
 sp-timestamp = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sp-trie = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
-
+sc-rpc-api = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
+pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrate", branch = "rococo-branch" }
 
 # Cumulus dependencies
 cumulus-consensus = { git = "https://github.com/paritytech/cumulus", rev = '35f60b1e90145714730d372b5067d9c392884ac9' }
