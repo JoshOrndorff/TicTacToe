@@ -3393,39 +3393,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "node-template"
-version = "2.0.0-rc6"
-dependencies = [
- "jsonrpc-core",
- "pallet-transaction-payment-rpc",
- "sc-basic-authorship",
- "sc-cli",
- "sc-client-api",
- "sc-consensus",
- "sc-consensus-aura",
- "sc-executor",
- "sc-finality-grandpa",
- "sc-rpc",
- "sc-rpc-api",
- "sc-service",
- "sc-transaction-pool",
- "sp-api",
- "sp-block-builder",
- "sp-blockchain",
- "sp-consensus",
- "sp-consensus-aura",
- "sp-core",
- "sp-finality-grandpa",
- "sp-inherents",
- "sp-runtime",
- "sp-transaction-pool",
- "structopt",
- "substrate-build-script-utils",
- "substrate-frame-rpc-system",
- "tictactoe-runtime",
-]
-
-[[package]]
 name = "nodrop"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6800,6 +6767,39 @@ dependencies = [
 name = "tictactoe"
 version = "0.2.0"
 dependencies = [
+ "jsonrpc-core",
+ "pallet-transaction-payment-rpc",
+ "sc-basic-authorship",
+ "sc-cli",
+ "sc-client-api",
+ "sc-consensus",
+ "sc-consensus-aura",
+ "sc-executor",
+ "sc-finality-grandpa",
+ "sc-rpc",
+ "sc-rpc-api",
+ "sc-service",
+ "sc-transaction-pool",
+ "sp-api",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-finality-grandpa",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-transaction-pool",
+ "structopt",
+ "substrate-build-script-utils",
+ "substrate-frame-rpc-system",
+ "tictactoe-runtime",
+]
+
+[[package]]
+name = "tictactoe-pallet"
+version = "0.2.0"
+dependencies = [
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -6839,7 +6839,7 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "substrate-wasm-builder-runner",
- "tictactoe",
+ "tictactoe-pallet",
 ]
 
 [[package]]

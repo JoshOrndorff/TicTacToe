@@ -9,6 +9,7 @@ license = 'Unlicense'
 [dependencies.tictactoe]
 default-features = false
 path = '../pallets/tictactoe'
+package = 'tictactoe-pallet'
 
 [package.metadata.docs.rs]
 targets = ['x86_64-unknown-linux-gnu']

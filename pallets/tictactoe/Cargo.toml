@@ -3,7 +3,7 @@ authors = ['Joshy Orndorff']
 description = 'FRAME pallet template for defining custom runtime logic.'
 edition = '2018'
 license = 'Unlicense'
-name = 'tictactoe'
+name = 'tictactoe-pallet'
 repository = 'https://github.com/JoshOrndorff/TicTacToe'
 version = '0.2.0'
 
