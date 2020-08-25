@@ -2,17 +2,20 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use support::{decl_module, decl_storage, decl_event, StorageValue, StorageMap, StorageDoubleMap, dispatch::Result};
-use system::ensure_signed;
-use codec::{ Encode, Decode };
-use support::ensure;
-use rstd::{vec, vec::{ Vec }};
+use frame_support::{
+	decl_event, decl_module, decl_storage,
+	dispatch::DispatchResult,
+	ensure,
+};
+use frame_system::ensure_signed;
+use parity_scale_codec::{ Encode, Decode };
+use sp_std::{vec, vec::{ Vec }};
 //use core::convert::TryInto;
 
 /// The module's configuration trait.
-pub trait Trait: system::Trait {
+pub trait Trait: frame_system::Trait {
 	/// The overarching event type.
-	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
+	type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
 }
 
 type GameId = u64;
@@ -31,22 +34,22 @@ pub enum Line {
 decl_storage! {
 	trait Store for Module<T: Trait> as TicTacToe {
         // The next game index
-        NextId get(next_id): GameId;
+        NextId get(fn next_id): GameId;
 
         // The actual cells of each each game.
-		Board get(board): double_map GameId, twox_128(CellIndex) => Option<T::AccountId>;
+		Board get(fn board): double_map hasher(blake2_128_concat) GameId, hasher(blake2_128_concat) CellIndex => Option<T::AccountId>;
 
         // Who is playing in each game
         // This is the canonical way to determine whether a game exists.
-        Players get(players): map GameId => Vec<T::AccountId>;
+        Players get(fn players): map hasher(blake2_128_concat) GameId => Vec<T::AccountId>;
 
         // Which turn it is in the given game
-        Turn get(turn): map GameId => u64;
+        Turn get(fn turn): map hasher(blake2_128_concat) GameId => u64;
 
         // Temporary storage item to keep track of who won each game
         // Ideally the ultimate "result" from a win will be the event
         // or possibly a payout in terms of staked/wagered tokens
-        Winner get(winner): map GameId => Option<T::AccountId>
+        Winner get(fn winner): map hasher(blake2_128_concat) GameId => Option<T::AccountId>
 	}
 }
 
@@ -58,8 +61,9 @@ decl_module! {
 		// this is needed only if you are using events in your module
 		fn deposit_event() = default;
 
-		// Create a Game
-		pub fn create_game(origin, opponent: T::AccountId) -> Result {
+		/// Create a Game
+		#[weight = 10_000]
+		pub fn create_game(origin, opponent: T::AccountId) -> DispatchResult {
 			// You can only create games that you will play in
 			let challenger = ensure_signed(origin)?;
 
@@ -78,13 +82,17 @@ decl_module! {
 			Ok(())
 		}
 
-        pub fn take_normal_turn(origin, game: GameId, cell: CellIndex) -> Result {
+		/// Take a normal non-winning turn
+		#[weight = 10_000]
+        pub fn take_normal_turn(origin, game: GameId, cell: CellIndex) -> DispatchResult {
             let caller = ensure_signed(origin)?;
 
             Self::take_turn(&caller, game, cell)
         }
 
-        pub fn take_winning_turn(origin, game: GameId, cell: CellIndex, location: Line) -> Result {
+		/// Take the final turn of the game and claim the win
+		#[weight = 10_000]
+        pub fn take_winning_turn(origin, game: GameId, cell: CellIndex, location: Line) -> DispatchResult {
             let caller = ensure_signed(origin)?;
 
             let turn_result = Self::take_turn(&caller, game, cell);
@@ -123,9 +131,9 @@ decl_module! {
 }
 
 impl<T: Trait> Module<T> {
-    fn take_turn(caller: &T::AccountId, game: GameId, cell: CellIndex) -> Result {
+    fn take_turn(caller: &T::AccountId, game: GameId, cell: CellIndex) -> DispatchResult {
         // Verify the game id
-        ensure!(<Players<T>>::exists(game), "No such Game");
+        ensure!(<Players<T>>::contains_key(game), "No such Game");
 
         // Verify the palyer
         let current_turn = Turn::get(game);
@@ -134,7 +142,7 @@ impl<T: Trait> Module<T> {
         ensure!(caller == &player, "Not your turn (or you're not in this game)");
 
         // Verify the cell
-        ensure!(!<Board<T>>::exists(&game, &cell), "Cell already taken");
+        ensure!(!<Board<T>>::contains_key(&game, &cell), "Cell already taken");
 
         // Write to the cell
         <Board<T>>::insert(&game, &cell, caller);
@@ -190,7 +198,7 @@ impl<T: Trait> Module<T> {
 }
 
 decl_event!(
-	pub enum Event<T> where AccountId = <T as system::Trait>::AccountId {
+	pub enum Event<T> where AccountId = <T as frame_system::Trait>::AccountId {
 		NewGame(GameId, AccountId, AccountId),
         TurnTaken(GameId, AccountId, CellIndex),
         Win(GameId, AccountId),
