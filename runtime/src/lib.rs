@@ -237,11 +237,6 @@ impl cumulus_token_dealer::Trait for Runtime {
 	type XCMPMessageSender = MessageBroker;
 }
 
-/// Configure the pallet template in pallets/template.
-impl template::Trait for Runtime {
-	type Event = Event;
-}
-
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -259,7 +254,6 @@ construct_runtime! {
 		TicTacToe: tictactoe::{Module, Call, Storage, Event<T>},
 		ParachainInfo: parachain_info::{Module, Storage, Config},
 		TokenDealer: cumulus_token_dealer::{Module, Call, Event<T>},
-		TemplateModule: template::{Module, Call, Storage, Event<T>},
 	}
 }
 

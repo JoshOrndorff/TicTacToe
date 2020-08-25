@@ -7,7 +7,7 @@ use crate::{
 use codec::Encode;
 use cumulus_primitives::ParaId;
 use log::info;
-use parachain_runtime::Block;
+use tictactoe_runtime::Block;
 use polkadot_parachain::primitives::AccountIdConversion;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
@@ -67,7 +67,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		&parachain_runtime::VERSION
+		&tictactoe_runtime::VERSION
 	}
 }
 
@@ -157,7 +157,7 @@ pub fn run() -> Result<()> {
 
 			runner.run_subcommand(subcommand, |mut config| {
 				let params = crate::service::new_partial::<
-					parachain_runtime::RuntimeApi,
+					tictactoe_runtime::RuntimeApi,
 					crate::service::RuntimeExecutor,
 				>(&mut config)?;
 

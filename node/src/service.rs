@@ -6,7 +6,7 @@ use cumulus_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use polkadot_primitives::v0::CollatorPair;
-use parachain_runtime::opaque::Block;
+use tictactoe_runtime::opaque::Block;
 use sc_executor::native_executor_instance;
 pub use sc_executor::NativeExecutor;
 use sc_informant::OutputFormat;
@@ -19,8 +19,8 @@ use std::sync::Arc;
 // Native executor instance.
 native_executor_instance!(
 	pub RuntimeExecutor,
-	parachain_runtime::api::dispatch,
-	parachain_runtime::native_version,
+	tictactoe_runtime::api::dispatch,
+	tictactoe_runtime::native_version,
 );
 
 /// Starts a `ServiceBuilder` for a full service.
@@ -236,9 +236,9 @@ pub fn start_node(
 	validator: bool,
 ) -> sc_service::error::Result<(
 	TaskManager,
-	Arc<TFullClient<Block, parachain_runtime::RuntimeApi, RuntimeExecutor>>,
+	Arc<TFullClient<Block, tictactoe_runtime::RuntimeApi, RuntimeExecutor>>,
 )> {
-	start_node_impl::<parachain_runtime::RuntimeApi, RuntimeExecutor>(
+	start_node_impl::<tictactoe_runtime::RuntimeApi, RuntimeExecutor>(
 		parachain_config,
 		collator_key,
 		polkadot_config,
