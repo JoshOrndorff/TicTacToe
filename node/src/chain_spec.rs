@@ -49,6 +49,8 @@ where
 }
 
 pub fn get_chain_spec(id: ParaId) -> Result<ChainSpec, String> {
+	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
+
 	let mut properties = Properties::new();
 	properties.insert("tokenSymbol".into(), "DEV".into());
 	properties.insert("tokenDecimals".into(), 12.into());
@@ -59,7 +61,7 @@ pub fn get_chain_spec(id: ParaId) -> Result<ChainSpec, String> {
 		ChainType::Local,
 		move || {
 			testnet_genesis(
-				WASM_BINARY,
+				wasm_binary,
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				vec![
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -90,6 +92,8 @@ pub fn get_chain_spec(id: ParaId) -> Result<ChainSpec, String> {
 }
 
 pub fn staging_test_net(id: ParaId) -> Result<ChainSpec, String> {
+	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
+
 	let mut properties = Properties::new();
 	properties.insert("tokenSymbol".into(), "STG".into());
 	properties.insert("tokenDecimals".into(), 12.into());
@@ -100,7 +104,7 @@ pub fn staging_test_net(id: ParaId) -> Result<ChainSpec, String> {
 		ChainType::Live,
 		move || {
 			testnet_genesis(
-				WASM_BINARY,
+				wasm_binary,
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 				id,

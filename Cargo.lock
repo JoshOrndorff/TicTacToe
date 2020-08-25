@@ -2609,7 +2609,7 @@ dependencies = [
 [[package]]
 name = "kusama-runtime"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "bitvec",
  "frame-executive",
@@ -4498,7 +4498,7 @@ checksum = "feb3b2b1033b8a60b4da6ee470325f887758c95d5320f52f9ce0df055a55940e"
 [[package]]
 name = "polkadot-availability-store"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "derive_more 0.99.9",
  "exit-future 0.2.0",
@@ -4525,7 +4525,7 @@ dependencies = [
 [[package]]
 name = "polkadot-cli"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "frame-benchmarking-cli",
  "futures 0.3.5",
@@ -4548,7 +4548,7 @@ dependencies = [
 [[package]]
 name = "polkadot-collator"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "futures 0.3.5",
  "futures-timer 2.0.2",
@@ -4575,7 +4575,7 @@ dependencies = [
 [[package]]
 name = "polkadot-core-primitives"
 version = "0.7.30"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "parity-scale-codec",
  "sp-core",
@@ -4586,7 +4586,7 @@ dependencies = [
 [[package]]
 name = "polkadot-erasure-coding"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "derive_more 0.15.0",
  "parity-scale-codec",
@@ -4599,7 +4599,7 @@ dependencies = [
 [[package]]
 name = "polkadot-network"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "arrayvec 0.4.12",
  "bytes 0.5.6",
@@ -4628,7 +4628,7 @@ dependencies = [
 [[package]]
 name = "polkadot-parachain"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "derive_more 0.99.9",
  "futures 0.3.5",
@@ -4649,7 +4649,7 @@ dependencies = [
 [[package]]
 name = "polkadot-primitives"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "bitvec",
  "frame-system",
@@ -4672,7 +4672,7 @@ dependencies = [
 [[package]]
 name = "polkadot-rpc"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "jsonrpc-core",
  "pallet-transaction-payment-rpc",
@@ -4699,7 +4699,7 @@ dependencies = [
 [[package]]
 name = "polkadot-runtime"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "bitvec",
  "frame-executive",
@@ -4764,7 +4764,7 @@ dependencies = [
 [[package]]
 name = "polkadot-runtime-common"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "bitvec",
  "frame-support",
@@ -4798,7 +4798,7 @@ dependencies = [
 [[package]]
 name = "polkadot-runtime-parachains"
 version = "0.8.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "bitvec",
  "frame-support",
@@ -4829,7 +4829,7 @@ dependencies = [
 [[package]]
 name = "polkadot-service"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "frame-benchmarking",
  "frame-system-rpc-runtime-api",
@@ -4889,7 +4889,7 @@ dependencies = [
 [[package]]
 name = "polkadot-statement-table"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "parity-scale-codec",
  "polkadot-primitives",
@@ -4899,7 +4899,7 @@ dependencies = [
 [[package]]
 name = "polkadot-test-runtime"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "bitvec",
  "frame-executive",
@@ -4953,7 +4953,7 @@ dependencies = [
 [[package]]
 name = "polkadot-test-runtime-client"
 version = "2.0.0"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "futures 0.3.5",
  "pallet-timestamp",
@@ -4977,7 +4977,7 @@ dependencies = [
 [[package]]
 name = "polkadot-test-service"
 version = "0.8.2"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "frame-benchmarking",
  "frame-system",
@@ -5024,7 +5024,7 @@ dependencies = [
 [[package]]
 name = "polkadot-validation"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "ansi_term 0.12.1",
  "bitvec",
@@ -5725,7 +5725,7 @@ dependencies = [
 [[package]]
 name = "rococo-runtime"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "bitvec",
  "frame-executive",
@@ -5783,6 +5783,7 @@ dependencies = [
  "sp-offchain",
  "sp-runtime",
  "sp-session",
+ "sp-staking",
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
@@ -9272,7 +9273,7 @@ dependencies = [
 [[package]]
 name = "westend-runtime"
 version = "0.8.22"
-source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#58830aabfe9640ac773023914104ec08be9122d0"
+source = "git+https://github.com/paritytech/polkadot?branch=rococo-branch#93f0029184a6c1749ce9420f4df1628a313a117d"
 dependencies = [
  "bitvec",
  "frame-executive",
