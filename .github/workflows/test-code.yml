@@ -31,7 +31,7 @@ jobs:
       with:
         profile: minimal
         toolchain: nightly-2020-07-31
-        components: rustfmt, clippy
+        components: clippy
         target: wasm32-unknown-unknown
         override: true
         default: true
