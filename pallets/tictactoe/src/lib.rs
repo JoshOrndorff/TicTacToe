@@ -319,7 +319,7 @@ mod tests {
 			assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 0));
 
 			// Assert player one cannot make a second move in a row (game 0, top center)
-			assert_noop!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 1), "Not your turn (or you're not in this game)");
+			assert_noop!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 1), Error::<TestRuntime>::NotYourTurn);
 		})
 	}
 
@@ -333,7 +333,7 @@ mod tests {
 			assert_ok!(TicTacToe::take_normal_turn(Origin::signed(1), 0, 0));
 
 			// Assert player two cannot make the same move (game 0, top left)
-			assert_noop!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 0), "Cell already taken");
+			assert_noop!(TicTacToe::take_normal_turn(Origin::signed(2), 0, 0), Error::<TestRuntime>::CellTaken);
 		})
 	}
 
