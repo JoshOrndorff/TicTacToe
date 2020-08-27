@@ -3,7 +3,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	decl_event, decl_module, decl_storage,
+	decl_event, decl_module, decl_storage, decl_error,
 	dispatch::DispatchResult,
 	ensure,
 };
@@ -53,7 +53,17 @@ decl_storage! {
 	}
 }
 
-// The module's dispatchable functions.
+decl_error! {
+	pub enum Error for Module<T: Trait> {
+		/// You've tried to take a turn in a game that doesn't exist
+		NoSuchGame,
+		/// It is not your turn to make a move (You may not be in this game)
+		NotYourTurn,
+		/// The cell you've tried to take is already taken
+		CellTaken
+	}
+}
+
 decl_module! {
 	/// The module declaration.
 	pub struct Module<T: Trait> for enum Call where origin: T::Origin {
@@ -133,16 +143,16 @@ decl_module! {
 impl<T: Trait> Module<T> {
 	fn take_turn(caller: &T::AccountId, game: GameId, cell: CellIndex) -> DispatchResult {
 		// Verify the game id
-		ensure!(<Players<T>>::contains_key(game), "No such Game");
+		ensure!(<Players<T>>::contains_key(game), Error::<T>::NoSuchGame);
 
 		// Verify the palyer
 		let current_turn = Turn::get(game);
 		let player_index = (current_turn % 2) as usize;
 		let player = <Players<T>>::get(game)[player_index].clone();
-		ensure!(caller == &player, "Not your turn (or you're not in this game)");
+		ensure!(caller == &player, Error::<T>::NotYourTurn);
 
 		// Verify the cell
-		ensure!(!<Board<T>>::contains_key(&game, &cell), "Cell already taken");
+		ensure!(!<Board<T>>::contains_key(&game, &cell), Error::<T>::CellTaken);
 
 		// Write to the cell
 		<Board<T>>::insert(&game, &cell, caller);
